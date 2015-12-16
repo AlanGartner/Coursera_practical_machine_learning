@@ -3,29 +3,91 @@ This file contains my answers to the coursera practical machine learning MOOC as
 
 ##Answers
 ###How I built my model
-First I have identified the most important features thanks to a principal component analysis.
-###Cross validation usage
+First I had a look to the data to get a feeling of its format. Then I read the paper http://groupware.les.inf.puc-rio.br/public/papers/2013.Velloso.QAR-WLE.pdf to understand the experimental setting and its link to the collected data. I noted that the authors had selected 17 features:
+> "in the belt, the mean and variance of the roll,
+maximum, range and variance of the accelerometer vector,
+variance of the gyro and variance of the magnetometer. 
 
+> In the  arm,  the  variance  of  the  accelerometer  vector  and  the
+maximum and minimum of the magnetometer.
+
+> In the dumbbell, the maximum of
+the  acceleration,  variance  of  the  gyro  and  maximum  and
+minimum of the magnetometer, while in the glove, the sum
+of  the  pitch  and  the  maximum  and  minimum  of  the  gyro"
+I used this info to start my model with a subset of the variables.
+
+
+###Cross validation usage
+I split the dataset so that 60% of the users go into training set and 40% into the testing set.
 
 ###Expected out of sample error
+
 ###Explanation of my choices
+
 ###Project files
 
 [Link to the github repository containing my .Rmd or .md file and my compiled HTML file performing the analysis.](https://github.com/AlanGartner/Coursera_practical_machine_learning)
 
 ##R code
 
+    # Clearing console
+    cat("\014")  
+    
+    #Loading caret package
+    library('caret')
+    
+    #Set the seed so that results are replicable
+    set.seed(1234)
+    
     # Going to the appropriate directory
     setwd('~/Personal_files/MOOC/Machine_learning')
     
     # Loading the datasets
-    training <- read.table("./pml-training.csv",sep=",",header= TRUE) 
-    testing <- read.table("./pml-testing.csv",sep=",",header= TRUE) 
+    dataset <- read.table("./pml-training.csv",sep=",",header= TRUE) 
+    problems <- read.table("./pml-testing.csv",sep=",",header= TRUE) 
     
-    # Preprocessing features
-    library('caret')
-    preproc<- preProcess(training,method="pca",thresh=0.95)
-    preproc
+    # Having a look to the data
+    summary(dataset)
+    
+    # Focusing on the columns that seem to make the most sense
+    good_idx <-  # index of the columns that have the most impact
+    
+    # Cross validation: slicing data into training and testing set
+    inTrain <- createDataPartition(y=dataset$user_name,p=0.6, list=FALSE)
+    training <- dataset[inTrain,]
+    testing <- dataset[-inTrain,]
+    dim(training)
+    
+    # training the model: outcome is class, all variables are predictors
+    modelFit <- train(classe ~., data=trainPC, method="glm")   
+    
+    
+    # Standardizing the dataset
+    preObj <- preProcess(training,method=c("center","scale"))
+    trainstd <- predict(preObj,training)
+    teststd <- predict(preObj,testing)
+
+    # Preprocessing features to see which really matter
+    preproc<- preProcess(trainstd,method="pca",thresh=0.95)
+    head(preproc)
+    trainPC <-predict(preproc, trainstd)
+    head(trainPC)
+    plot(trainPC[,1],trainPC[,2],col="typeColor")
+    
+    # Plotting the main variables to understand better the problem
+    #definir les variables à conserver
+    #featurePlot(x=training[], y=training$class, plots="pairs") 
+    
+
+    
+    # Assessing the model performance through a confusion matrix
+    ## In sample error
+    confusionMatrix(training$class,predict(modelFit,trainPC))  
+    ## Out of sample error
+    confusionMatrix(testing$class,predict(modelFit,testPC))
+    
+
     
     
 #Answers to the problems
