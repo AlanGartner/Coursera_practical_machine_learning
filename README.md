@@ -3,49 +3,67 @@ This file contains my answers to the coursera practical machine learning MOOC as
 
 ##Answers
 ###How I built my model
-First I had a look to the data to get a feeling of its format. I saw that the "problems" do not involve time series, but just snapshots. I also saw that many variables involved NA values, and that there were too many predictors. My first action was therefore to simplify the dataset by pruning some predictors. To do this I used to ideas:
-1. the problems have null / na values for some columns: those can be removed from the training as well
-2. some columns are full of NA, they can be removed
-3. remaining columns can be sorted by importance to keep the most relevant only.
+First I had a look to the data to get a feeling of its format. I saw that the "problems" do not involve time series, but just snapshots. I also saw that many variables involved NA values, and that there were too many predictors. My first action was therefore to simplify the dataset by pruning some predictors. To do this I used following ideas:
+1. the problems have null / na values for some columns: those can be removed from the training as well -> 54 variables left
+2. some columns are full of NA, they can be removed -> 53 variables left
+3. Only 20 variables really impact the predictions.
 
 After this, I was left with a much simpler problem: only 20 predictors out of 160.
 
-![alt tag](https://raw.github.com/AlanGartner/Coursera_practical_machine_learning/gh-pages/variable_importance.png)
+![alt tag](https://raw.github.com/AlanGartner/Coursera_practical_machine_learning/gh-pages/selected_vars.png)
 
-I also read the paper to understand the experimental setting and its link to the collected data. I noted that the authors had selected 17 features:
-> "in the belt, the mean and variance of the roll,
-maximum, range and variance of the accelerometer vector,
-variance of the gyro and variance of the magnetometer. 
-
-> In the  arm,  the  variance  of  the  accelerometer  vector  and  the
-maximum and minimum of the magnetometer.
-
-> In the dumbbell, the maximum of
-the  acceleration,  variance  of  the  gyro  and  maximum  and
-minimum of the magnetometer, while in the glove, the sum
-of  the  pitch  and  the  maximum  and  minimum  of  the  gyro"
-I used this info to start my model with a subset of the variables.
-
-
-###Cross validation usage
-I split the dataset so that 60% of the users go into training set and 40% into the testing set. This is not totally required, because I am going to use a random forest approach, but I want to double check the out of sample error.
-
-###Expected out of sample error
 
 ###Explanation of my choices
 
+As the run time was reasonable with randomForest function, I decided to keep all 53 predictors.
+
+I used the random forest approach because there was no clear linear relationship among the predictors and the random forest algorithm is one of the most efficient in prediction contests.
+
+    > probPredict
+     1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+     B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+                                         
+~                                                                          
+###Cross validation usage
+I split the dataset so that 60% of the users go into training set and 40% into the testing set. This is not totally required, because I am going to use a random forest approach, but I wanted to double check the out of sample error.
+
+###Expected out of sample error
+Keeping 53 variables, the prediction error rate is :
+
+    Call:
+     randomForest(formula = classe ~ ., data = training, ntree = 100,      keep.forest = FALSE, importance = TRUE) 
+               Type of random forest: classification
+                     Number of trees: 100
+    No. of variables tried at each split: 7
+
+    **OOB estimate of  error rate: 0.66%**
+
+    Confusion matrix:
+         A    B    C    D    E class.error
+    A 3900    4    1    0    1 0.001536098
+    B   17 2632    9    0    0 0.009781791
+    C    0   18 2373    5    0 0.009599332
+    D    1    0   23 2226    2 0.011545293
+    E    0    0    3    6 2516 0.003564356
+
+To be safe, I double check on my testing set.
+
+    > testPredict <- predict(classeRf,newdata=testing)
+    > summary(testing$classe != testPredict)
+       Mode   FALSE    TRUE    NA's 
+    logical    5861      24       0 
+Those 24 errors correspond to a 0.04% error rate. This confirms that I can expect an out of sample error below 1%
+
+
 ###Project files
 
-[Link to the github repository containing my .Rmd or .md file and my compiled HTML file performing the analysis.](https://github.com/AlanGartner/Coursera_practical_machine_learning)
-
-##R code
-    
+[Link to the github repository containing my .Rmd or .md file and my compiled HTML file performing the analysis.](https://github.com/AlanGartner/Coursera_practical_machine_learning)    
 
     
     
 #Answers to the problems
 ## Instructions
- Please apply the machine learning algorithm you built to each of the 20 test cases in the testing data set. For more information and instructions on how to build your model see the prediction assignment writeup. For each test case you should submit a text file with a single capital letter (A, B, C, D, or E) corresponding to your prediction for the corresponding problem in the test data set. You get 1 point for each correct answer. You may submit up to 2 times for each problem. I know it is a lot of files to submit. It may be helpful to use the following function to create the files. If you have a character vector with your 20 predictions in order for the 20 problems. So something like (note these are not the right answers!):
+ Please apply the machine learning algorithm you built to each of the 20 test cases in the testing data set. For more information and instructions on how to build your model see the prediction assignment writeup. For each test case you should submit a text file with a single capital letter (A, B, C, D, or E) corresponding to your prediction for the corresponding problem in thethe test data set. You get 1 point for each correct answer. You may submit up to 2 times for each problem. I know it is a lot of files to submit. It may be helpful to use the following function to create the files. If you have a character vector with your 20 predictions in order for the 20 problems. So something like (note these are not the right answers!):
 
     answers = rep("A", 20)
 
