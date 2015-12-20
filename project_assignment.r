@@ -38,10 +38,12 @@ dim(training)
 
 # Identifying the columns that are the most important
 classeRf <- randomForest(classe ~ ., data=training, ntree=100,keep.forest=TRUE, importance=TRUE)
-varImpPlot(classRf,)
+varImpPlot(classeRf,)
 testPredict <- predict(classeRf,newdata=testing)
 summary(testing$classe != testPredict)
 
 # now predicting on the problems
 probPredict <- predict(classeRf,newdata=problems)
+
+#rmarkdown::render("Coursera_practical_machine_learning/project_assignment.r")
 
